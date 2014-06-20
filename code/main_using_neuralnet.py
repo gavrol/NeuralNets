@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 import neuralnet
-
+import functions
 
 def scale(df,col):
     tmp = []
@@ -116,6 +116,10 @@ if __name__== "__main__":
     test_target = np.array(test_df[target_var])#.reshape(test_data.shape[0],1)
                 
     
+    #neural_net.test(test_data)
+    TrainModel_Stats = {}
+    TestModel_Stats = {}
+    kernel = "NN"
     neural_net = neuralnet.SimpleNeuralNet(train_data.shape[1],num_hidden_neurons=train_data.shape[1]+2, 
                                            num_epochs=200,LearningRate=0.07,include_LinearNeuron = True,
                                            include_InputBias=True,include_OutputBias=True)
@@ -123,6 +127,15 @@ if __name__== "__main__":
     print "weights_HO:",net.weights_HO
     print "weights_HI:",net.weights_IH
     
-    neural_net.validate(validation_data,validation_target) 
-    #neural_net.test(test_data)
-    
+    predicted_values_train = neural_net.validate(train_data,train_target) 
+    predicted_values_validation = neural_net.validate(validation_data,validation_target)
+    tr_sensitivity,tr_specificity,tr_precision,tr_accuracy = functions.calculate_SensSpecifPrecAccur(predicted_values_train,train_target)
+    TrainModel_Stats[kernel] ={'sensitivity':tr_sensitivity,"specificity":tr_specificity,'precision':tr_precision,'accuracy': tr_accuracy}  
+    ts_sensitivity,ts_specificity,ts_precision,ts_accuracy = functions.calculate_SensSpecifPrecAccur(predicted_values_validation,validation_target)                
+    TestModel_Stats[kernel] ={'sensitivity':ts_sensitivity,"specificity":ts_specificity,'precision':ts_precision,'accuracy': ts_accuracy}  
+    s =  kernel+"\n"
+    s += "For the train set of observations \n sensitivity %f\n specificity %f\n precision %f\n accuracy %f\n" %(tr_sensitivity,tr_specificity,tr_precision,tr_accuracy)
+    s += "For the validation set "+str(validation_set)+" of observations \n sensitivity %f\n specificity %f\n precision %f\n accuracy %f\n" %(ts_sensitivity,ts_specificity,ts_precision,ts_accuracy)
+
+    print s
+   

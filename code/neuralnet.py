@@ -125,6 +125,7 @@ class SimpleNeuralNet:
         except:
             print "plotting aborted due to invalid values"
         print "validation RMS Error = %f"%RMSerror
+        return predictions
         
     def test(self,observations):
         predictions = []
@@ -138,6 +139,7 @@ class SimpleNeuralNet:
             #change network weights
         for i in range(len(predictions)):
             print "obs =",i+1,"predicted value is",predictions[i]
+        return predictions
         
     def display_results(self,targs,predictions,errors):
         for i in range(len(predictions)):
