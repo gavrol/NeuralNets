@@ -6,7 +6,7 @@ Created on Tue May 20 13:54:28 2014
 """
 import numpy as np
 import math
-from matplotlib.transforms import offset_copy
+
 import matplotlib.pyplot as plt
 import copy
 
@@ -45,7 +45,7 @@ class SimpleNeuralNet:
         self.RMSerror_best = 1000000
 
 
-    def train(self,observations,target,net_fn=None):
+    def train(self,observations,target,net_fn=None,plot=True):
 
         self.initialize_weights()
         worsecount = 0
@@ -72,7 +72,12 @@ class SimpleNeuralNet:
             #display the overall network error after each epoch
             RMSerror = self.calc_overall_error(errors)
             print "epoch = %d RMS Error = %f" %(j,RMSerror)
-            plot_predicted_vs_true(predictions,targets)
+            if plot:
+                try:
+                    plot_predicted_vs_true(predictions,targets)
+                except:
+                    print "plotting aborted due to invalid values"
+                    
             
             #IF ERROR HAS INCREASED THEN REVERT BACK TO STARTING WEIGHTS
             if (RMSerror < self.RMSerror_best):
@@ -119,13 +124,13 @@ class SimpleNeuralNet:
 
             #change network weights
         RMSerror = self.calc_overall_error(errors)
-        self.display_results(targets,predictions,errors)
+        #self.display_results(targets,predictions,errors)
         try:
             plot_predicted_vs_true(predictions,targets)
         except:
             print "plotting aborted due to invalid values"
         print "validation RMS Error = %f"%RMSerror
-        return predictions
+        return predictions,RMSerror
         
     def test(self,observations):
         predictions = []

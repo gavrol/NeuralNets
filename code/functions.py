@@ -30,6 +30,7 @@ def def_cross_validation_subsets(df,varN,numK=5):
         df[varN].iloc[i] = i%numK
     return df
 
+
 def silly_cuberoot(col):
     col1 = []
     for elem in col:

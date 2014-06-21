@@ -12,6 +12,23 @@ import pandas as pd
 import neuralnet
 import functions
 
+def write_stats_2file(train_fn,Models,Train_Stats,Validation_Stats,train_data,validation_data,ofn=None):
+    if ofn == None:
+        ofn = train_fn+"_stats.csv"
+    ofn  = open(ofn,"w")
+    kernels = Models.keys()
+    headers =  Models[kernels[0]].keys()
+    headers.remove("model")
+    ofn.write("dataName,numObs,"+",".join(headers)+",trainRMSE,validateRMSE"+"\n")
+    for kernel in kernels:
+        s =train_fn+","+str(train_data.shape[0])+","
+        for header in headers:
+            s += str(Models[kernel][header])+","
+        s+= str(round(Train_Stats[kernel]['RMSE'],4)) +","
+        s+= str(round(Validation_Stats[kernel]['RMSE'],4)) +","
+        ofn.write(s+"\n")
+    ofn.close()
+
 def scale(df,col):
     tmp = []
     min_ = df[col].min()
@@ -22,7 +39,7 @@ def scale(df,col):
         return tmp
     else:
         return np.ones(len(df.index))
-        
+
     
 def make_numpy_matrix(df,variables):
     """assumes that the bias was already added"""
@@ -31,15 +48,7 @@ def make_numpy_matrix(df,variables):
         observations.append(np.array(df[col]))
     observations = np.mat(observations).transpose().A #annoying numpy magic, and Tim loves it
     print observations.shape
-    return observations
-
-def def_cross_validation_subsets(df,varN,numK=5):
-    df[varN] = -1
-    for i in xrange(len(df.index)):
-        df[varN].iloc[i] = i%numK
-    return df
-    
-    
+    return observations    
     
 def initialize_train_data(DATA_DIR,fn):
     df = pd.read_csv(DATA_DIR+fn)
@@ -74,15 +83,15 @@ if __name__== "__main__":
     """organize data into train, test,and vaildate"""
     train_var = "_TRAIN"
     validation_set = 6
-    test_set = validation_set +1
+    test_set = -1#validation_set +1
     if test_fn == None:
         #if there is no test file, then make a test data set out of train, but using a bit of it
-        train_df = def_cross_validation_subsets(train_df,train_var,numK=validation_set+2)
+        train_df = functions.def_cross_validation_subsets(train_df,train_var,numK=validation_set+2)
         test_df = train_df[train_df[train_var] == test_set]
         train_df = train_df[train_df[train_var] != test_set]
     else:
         test_df = initialize_test_data(DATA_DIR,test_fn)
-        train_df = def_cross_validation_subsets(train_df,train_var,numK=validation_set+1)
+        train_df = functions.def_cross_validation_subsets(train_df,train_var,numK=validation_set+1)
         test_df[train_var] = test_set
 
     """put the two DFs together to perform transformations, trimming, filling NANs if necessary etc."""        
@@ -112,30 +121,59 @@ if __name__== "__main__":
     validation_data = make_numpy_matrix(train_df[train_df[train_var] == validation_set],explanatory_vars)
     validation_target = np.array(train_df[target_var][train_df[train_var] == validation_set])#.reshape(validation_data.shape[0],1)
     
-    test_data = make_numpy_matrix(test_df,explanatory_vars)
-    test_target = np.array(test_df[target_var])#.reshape(test_data.shape[0],1)
+#    test_data = make_numpy_matrix(test_df,explanatory_vars)
+#    test_target = np.array(test_df[target_var])#.reshape(test_data.shape[0],1)
                 
     
     #neural_net.test(test_data)
-    TrainModel_Stats = {}
-    TestModel_Stats = {}
+    Train_Stats = {}
+    Validation_Stats = {}
+    Models = {}
     kernel = "NN"
-    neural_net = neuralnet.SimpleNeuralNet(train_data.shape[1],num_hidden_neurons=train_data.shape[1]+2, 
-                                           num_epochs=200,LearningRate=0.07,include_LinearNeuron = True,
-                                           include_InputBias=True,include_OutputBias=True)
-    net = neural_net.train(train_data,train_target)
-    print "weights_HO:",net.weights_HO
-    print "weights_HI:",net.weights_IH
-    
-    predicted_values_train = neural_net.validate(train_data,train_target) 
-    predicted_values_validation = neural_net.validate(validation_data,validation_target)
-    tr_sensitivity,tr_specificity,tr_precision,tr_accuracy = functions.calculate_SensSpecifPrecAccur(predicted_values_train,train_target)
-    TrainModel_Stats[kernel] ={'sensitivity':tr_sensitivity,"specificity":tr_specificity,'precision':tr_precision,'accuracy': tr_accuracy}  
-    ts_sensitivity,ts_specificity,ts_precision,ts_accuracy = functions.calculate_SensSpecifPrecAccur(predicted_values_validation,validation_target)                
-    TestModel_Stats[kernel] ={'sensitivity':ts_sensitivity,"specificity":ts_specificity,'precision':ts_precision,'accuracy': ts_accuracy}  
-    s =  kernel+"\n"
-    s += "For the train set of observations \n sensitivity %f\n specificity %f\n precision %f\n accuracy %f\n" %(tr_sensitivity,tr_specificity,tr_precision,tr_accuracy)
-    s += "For the validation set "+str(validation_set)+" of observations \n sensitivity %f\n specificity %f\n precision %f\n accuracy %f\n" %(ts_sensitivity,ts_specificity,ts_precision,ts_accuracy)
+    MaxNumHiddenNeurons = int(2*train_data.shape[1])+1
+    MaxNumEpochs = 250
+    LearningRates = [0.1,0.05,0.005]
 
-    print s
+    for hd in range(train_data.shape[1]+1,MaxNumHiddenNeurons,1):
+        for numEpochs in range(100,MaxNumEpochs,100):
+            for lr in LearningRates:
+                for linNeuron in [True,False]:                   
+                            
+                    neural_net = neuralnet.SimpleNeuralNet(train_data.shape[1],num_hidden_neurons=hd, 
+                                                           num_epochs=numEpochs,LearningRate=lr,include_LinearNeuron = linNeuron,
+                                                           include_InputBias=True,include_OutputBias=True)
+                    net = neural_net.train(train_data,train_target,plot=False)
+                    print "weights_HO:",net.weights_HO
+                    print "weights_HI:",net.weights_IH
+                    
+                    predicted_values_train,RMSE_train = neural_net.validate(train_data,train_target) 
+                    predicted_values_validation,RMSE_validation= neural_net.validate(validation_data,validation_target)
+                    
+                    kernel = "NN_"+"NumHiddenNeurons:"+str(hd)+"_NumEpochs:"+str(numEpochs)+"_LR:"+str(lr)+"_LinNeuron:"+str(linNeuron)
+                    if kernel not in Models.keys():
+                        Train_Stats[kernel] = {}
+                        Validation_Stats[kernel] = {}
+                        Models[kernel] = {}
+                    Models[kernel]['model'] = net
+                    Models[kernel]["NumHiddenNeurons"] = hd
+                    Models[kernel]["NumEpochs"]= numEpochs
+                    Models[kernel]["StartingLearningRate"]=lr
+                    Models[kernel]["IncludeLinearNeuron"]=linNeuron
+                    Models[kernel]["ActivationFunctions"] = "tanh"
+                    Models[kernel]["NumFeatures"] = train_data.shape[1]
+                    Train_Stats[kernel]['RMSE'] = RMSE_train
+                    Validation_Stats[kernel]["RMSE"] = RMSE_validation 
+
+
+    write_stats_2file(train_fn,Models,Train_Stats,Validation_Stats,train_data,validation_data)  
+
+#    tr_sensitivity,tr_specificity,tr_precision,tr_accuracy = functions.calculate_SensSpecifPrecAccur(predicted_values_train,train_target)
+#    TrainModel_Stats[kernel] ={'sensitivity':tr_sensitivity,"specificity":tr_specificity,'precision':tr_precision,'accuracy': tr_accuracy}  
+#    ts_sensitivity,ts_specificity,ts_precision,ts_accuracy = functions.calculate_SensSpecifPrecAccur(predicted_values_validation,validation_target)                
+#    TestModel_Stats[kernel] ={'sensitivity':ts_sensitivity,"specificity":ts_specificity,'precision':ts_precision,'accuracy': ts_accuracy}  
+#    s =  kernel+"\n"
+#    s += "For the train set of observations \n sensitivity %f\n specificity %f\n precision %f\n accuracy %f\n" %(tr_sensitivity,tr_specificity,tr_precision,tr_accuracy)
+#    s += "For the validation set "+str(validation_set)+" of observations \n sensitivity %f\n specificity %f\n precision %f\n accuracy %f\n" %(ts_sensitivity,ts_specificity,ts_precision,ts_accuracy)
+#
+#    print s
    
