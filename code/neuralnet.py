@@ -71,8 +71,9 @@ class SimpleNeuralNet:
             
             #display the overall network error after each epoch
             RMSerror = self.calc_overall_error(errors)
-            print "epoch = %d RMS Error = %f" %(j,RMSerror)
+
             if plot:
+                print "epoch = %d RMS Error = %f" %(j,RMSerror)
                 try:
                     plot_predicted_vs_true(predictions,targets)
                 except:

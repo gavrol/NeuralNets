@@ -30,7 +30,27 @@ def def_cross_validation_subsets(df,varN,numK=5):
         df[varN].iloc[i] = i%numK
     return df
 
+def scale(df,col):
+    tmp = []
+    min_ = df[col].min()
+    max_ = df[col].max()
+    if min_ != max_:
+        for indx in df.index:
+            tmp.append((df[col][indx] - min_)/(max_ - min_)*2 - 1)
+        return tmp
+    else:
+        return np.ones(len(df.index))
 
+    
+def make_numpy_matrix(df,variables):
+    """assumes that the bias was already added"""
+    observations = []
+    for col in variables:
+        observations.append(np.array(df[col]))
+    observations = np.mat(observations).transpose().A #annoying numpy magic, and Tim loves it
+    print observations.shape
+    return observations    
+    
 def silly_cuberoot(col):
     col1 = []
     for elem in col:
@@ -98,13 +118,13 @@ def randomize_prediction_v1(df,target_name):
                 break
     return random_target
 
-def calculate_SensSpecifPrecAccur(target_predicted,target):
+def calculate_SensSpecifPrecAccurNN(target_predicted,target):
     
     if len(target_predicted) == len(target):
         numTP = len(target_predicted[(target_predicted==1) & (target==1)])
-        numFP = len(target_predicted[(target_predicted==1) & (target==0)])
-        numTN = len(target_predicted[(target_predicted==0) & (target==0)])
-        numFN = len(target_predicted[(target_predicted==0) & (target==1)])
+        numFP = len(target_predicted[(target_predicted==1) & (target==-1)])
+        numTN = len(target_predicted[(target_predicted==-1) & (target==-1)])
+        numFN = len(target_predicted[(target_predicted==1) & (target==1)])
         sensitivity = float(numTP)/float(max(numTP+numFN,1))
         specificity = float(numTN)/float(max(numTN+numFP,1))
         precision = float(numTP)/float(max(numTP+numFP,1))
@@ -113,11 +133,11 @@ def calculate_SensSpecifPrecAccur(target_predicted,target):
     else:
         return None
 
-def cal_TP_FP_FN_TN(target_predicted,target):
+def cal_TP_FP_FN_TN_NN(target_predicted,target):
     if len(target_predicted) == len(target):
         numTP = len(target_predicted[(target_predicted==1) & (target==1)])
-        numFP = len(target_predicted[(target_predicted==1) & (target==0)])
-        numTN = len(target_predicted[(target_predicted==0) & (target==0)])
-        numFN = len(target_predicted[(target_predicted==0) & (target==1)])
+        numFP = len(target_predicted[(target_predicted==1) & (target==-1)])
+        numTN = len(target_predicted[(target_predicted==-1) & (target==-1)])
+        numFN = len(target_predicted[(target_predicted==-1) & (target==1)])
     return numTP,numFP,numFN,numTN,
 
