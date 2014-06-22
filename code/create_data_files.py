@@ -30,21 +30,11 @@ def write2file(data,target,fn=None):
         fn.write(l+"\n")
     fn.close()
 
-def scale_npvec(np_vec):
-    tmp = []
-    min_ = np.min(np_vec)
-    max_ = np.max(np_vec)
-    if min_ != max_:
-        for i in range(len(np_vec)):
-            tmp.append((np_vec[i] - min_)/(max_ - min_)*2 - 1)
-        return tmp
-    else:
-        return np.ones(len(np_vec))
         
         
 def simple_addition():
     print "a simple neural network based on addition"
-    size = 100
+    size = 1000
     vec1 = np.random.uniform(-0.5, 0.5,size)
     vec2 = np.random.uniform(-0.5, 0.5,size)
     #print input
@@ -52,26 +42,22 @@ def simple_addition():
     target = vec1+vec2
     target = target.reshape(size,1)
     inp = np.c_[vec1,vec2]
-    write2file(inp,target,fn="test01_simple_addition.csv")
+    write2file(inp,target,fn="test01.csv")
     
 def NN_simple1():
     print "a neural network based on "
     size = 1000
-#    vec1 = np.linspace(1, 10, size) 
-#    vec2 = np.linspace(-1,1,size) 
-#    vec3 = np.linspace(-5,5,size)
 #    vec1 = np.random.uniform(1,10,size)
 #    vec2 = np.random.uniform(-1,1,size)
 #    vec3 = np.random.uniform(-5,5,size)
     vec1 = np.random.uniform(-1,1,size)
     vec2 = np.random.uniform(-1,1,size)
     vec3 = np.random.uniform(-1,1,size)
-    
-    #print "orig data:\n",np.c_[vec1,vec2,vec2]
-    tvec1 = 1*(vec1)
+
+    tvec1 = 2.5*(vec1)
     tvec2 = vec2 - np.ones(len(vec2))
     target = tvec1+tvec2+vec3
-    target = vec1+vec2+vec3
+    #target = vec1+vec2+vec3
     target = target.reshape(size,1)
     inp = np.c_[vec1,vec2,vec3]
     write2file(inp,target,fn="test04.csv")
@@ -90,22 +76,29 @@ def test05_tanh():
     inp = np.c_[vec1,vec2,vec3]
     write2file(inp,target,fn="test05.csv")
 
+def data_set3():
+    size = 1000
+    vec1 = np.linspace(-10,10,size)
+    vec2 = np.linspace(-1,1,size)
+    vec3 = np.linspace(-5,5,size)
+    
+    tvec1 = vec1 + np.random.uniform(-0.05,0.05,size)
+    target = np.c_[tvec1+vec2+vec3].reshape(size,1)
+    write2file(np.c_[vec1,vec2,vec3],target,fn="test03.csv")
+    
       
 
 def NN_log_ff():
     print "a neural network based on addition of log and exp"
-    size = 20
+    size = 1000
     vec1 = np.random.uniform(1,10,size)
     vec2 = np.random.uniform(-1,1,size)
     vec3 = np.random.uniform(-5,5,size)
 
-    tr_data = np.c_[vec1,vec2,vec3]
-    
     tvec1 = np.log(vec1)
     tvec2 = np.exp2(vec2)
     target = np.c_[tvec1+tvec2+vec3].reshape(size,1)
-    print tr_data,target
-    write2file(tr_data,target,fn="test02_logNexp.csv")
+    write2file(np.c_[vec1,vec2,vec3],target,fn="test02_logNexp.csv")
 
 def simple_square():
     print "square and simple addition"
@@ -124,4 +117,5 @@ if __name__=="__main__":
     #NN_log_ff()
     #NN_simple1()
     #test05_tanh()
-    simple_square()
+    #simple_square()
+    data_set3()

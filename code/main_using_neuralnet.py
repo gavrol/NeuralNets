@@ -167,13 +167,3 @@ if __name__== "__main__":
 
     write_stats_2file(train_fn,Models,Train_Stats,Validation_Stats,train_data,validation_data)  
 
-#    tr_sensitivity,tr_specificity,tr_precision,tr_accuracy = functions.calculate_SensSpecifPrecAccur(predicted_values_train,train_target)
-#    TrainModel_Stats[kernel] ={'sensitivity':tr_sensitivity,"specificity":tr_specificity,'precision':tr_precision,'accuracy': tr_accuracy}  
-#    ts_sensitivity,ts_specificity,ts_precision,ts_accuracy = functions.calculate_SensSpecifPrecAccur(predicted_values_validation,validation_target)                
-#    TestModel_Stats[kernel] ={'sensitivity':ts_sensitivity,"specificity":ts_specificity,'precision':ts_precision,'accuracy': ts_accuracy}  
-#    s =  kernel+"\n"
-#    s += "For the train set of observations \n sensitivity %f\n specificity %f\n precision %f\n accuracy %f\n" %(tr_sensitivity,tr_specificity,tr_precision,tr_accuracy)
-#    s += "For the validation set "+str(validation_set)+" of observations \n sensitivity %f\n specificity %f\n precision %f\n accuracy %f\n" %(ts_sensitivity,ts_specificity,ts_precision,ts_accuracy)
-#
-#    print s
-   
