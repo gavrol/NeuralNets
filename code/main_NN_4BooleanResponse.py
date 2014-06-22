@@ -42,9 +42,9 @@ def write_stats_2file(train_fn,Models,Train_Stats,Validation_Stats,train_data,va
         s+= str(round(Train_Stats[kernel]['RMSE'],4)) +","
         s+= str(round(Validation_Stats[kernel]['RMSE'],4)) +","
         for stat in ['sensitivity','precision','specificity','accuracy']:
-            s+= str(round(Train_Stats[kernel][stat],2))+","
+            s+= str(round(Train_Stats[kernel]["SSPA"][stat],2))+","
         for stat in ['sensitivity','precision','specificity','accuracy']:
-            s+= str(round(Validation_Stats[kernel][stat],2))+","
+            s+= str(round(Validation_Stats[kernel]["SSPA"][stat],2))+","
             
         ofn.write(s+"\n")
     ofn.close()
@@ -63,9 +63,9 @@ def calculate_confusion_matrix(predicted_values_train,train_target,predicted_val
     transformed_predicted_values_train = transform_into_binary(predicted_values_train,TH)
     transformed_predicted_values_validation = transform_into_binary(predicted_values_validation,TH)
     tr_sensitivity,tr_specificity,tr_precision,tr_accuracy = functions.calculate_SensSpecifPrecAccurNN(transformed_predicted_values_train,train_target)
-    Train_Stats[kernel] ={'sensitivity':tr_sensitivity,"specificity":tr_specificity,'precision':tr_precision,'accuracy': tr_accuracy}  
+    Train_Stats[kernel]["SSPA"] ={'sensitivity':tr_sensitivity,"specificity":tr_specificity,'precision':tr_precision,'accuracy': tr_accuracy}  
     ts_sensitivity,ts_specificity,ts_precision,ts_accuracy = functions.calculate_SensSpecifPrecAccurNN(transformed_predicted_values_validation,validation_target)                
-    Validation_Stats[kernel] ={'sensitivity':ts_sensitivity,"specificity":ts_specificity,'precision':ts_precision,'accuracy': ts_accuracy}  
+    Validation_Stats[kernel]["SSPA"] ={'sensitivity':ts_sensitivity,"specificity":ts_specificity,'precision':ts_precision,'accuracy': ts_accuracy}  
     s =  kernel+"\n"
     s += "For the train set of observations \n sensitivity %f\n specificity %f\n precision %f\n accuracy %f\n" %(tr_sensitivity,tr_specificity,tr_precision,tr_accuracy)
     s += "For the validation set "+str(validation_set)+" of observations \n sensitivity %f\n specificity %f\n precision %f\n accuracy %f\n" %(ts_sensitivity,ts_specificity,ts_precision,ts_accuracy)
@@ -158,9 +158,9 @@ if __name__== "__main__":
     Validation_Stats = {}
     Models = {}
     kernel = "NN"
-    MaxNumHiddenNeurons = train_data.shape[1]+3 # int(1.5*train_data.shape[1])+1
-    MaxNumEpochs = 550
-    LearningRates = [0.005] #0.05,0.005]
+    MaxNumHiddenNeurons = train_data.shape[1]+4 # int(1.5*train_data.shape[1])+1
+    MaxNumEpochs = 1050
+    LearningRates = [0.005,0.0005] #0.05,0.005]
 
     for hd in range(train_data.shape[1]+1,MaxNumHiddenNeurons,1):
         for numEpochs in range(500,MaxNumEpochs,100):
