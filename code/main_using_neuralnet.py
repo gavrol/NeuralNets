@@ -29,26 +29,6 @@ def write_stats_2file(train_fn,Models,Train_Stats,Validation_Stats,train_data,va
         ofn.write(s+"\n")
     ofn.close()
 
-def scale(df,col):
-    tmp = []
-    min_ = df[col].min()
-    max_ = df[col].max()
-    if min_ != max_:
-        for indx in df.index:
-            tmp.append((df[col][indx] - min_)/(max_ - min_)*2 - 1)
-        return tmp
-    else:
-        return np.ones(len(df.index))
-
-    
-def make_numpy_matrix(df,variables):
-    """assumes that the bias was already added"""
-    observations = []
-    for col in variables:
-        observations.append(np.array(df[col]))
-    observations = np.mat(observations).transpose().A #annoying numpy magic, and Tim loves it
-    print observations.shape
-    return observations    
     
 def initialize_train_data(DATA_DIR,fn):
     df = pd.read_csv(DATA_DIR+fn)
@@ -106,19 +86,19 @@ if __name__== "__main__":
 
     scaled_DF = DF.copy()
     for col in explanatory_vars:
-        scaled_DF[col] = scale(DF,col)
+        scaled_DF[col] = functions.scale(DF,col)
     #scaled_DF.to_csv("scaledDF.csv")
     
-    scaled_DF[target_var] = scale(DF,target_var)
+    scaled_DF[target_var] = functions.scale(DF,target_var)
     
     """separate the two DFs AFTER all the variable manipulating work is done"""
     train_df = scaled_DF[scaled_DF[train_var] != test_set ] 
     test_df = scaled_DF[scaled_DF[train_var] == test_set]
 
-    train_data = make_numpy_matrix(train_df[train_df[train_var] != validation_set],explanatory_vars)
+    train_data = functions.make_numpy_matrix(train_df[train_df[train_var] != validation_set],explanatory_vars)
     train_target = np.array(train_df[target_var][train_df[train_var] != validation_set])#.reshape(train_data.shape[0],1)
 
-    validation_data = make_numpy_matrix(train_df[train_df[train_var] == validation_set],explanatory_vars)
+    validation_data = functions.make_numpy_matrix(train_df[train_df[train_var] == validation_set],explanatory_vars)
     validation_target = np.array(train_df[target_var][train_df[train_var] == validation_set])#.reshape(validation_data.shape[0],1)
     
 #    test_data = make_numpy_matrix(test_df,explanatory_vars)

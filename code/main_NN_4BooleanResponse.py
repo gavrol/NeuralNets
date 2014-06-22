@@ -159,11 +159,11 @@ if __name__== "__main__":
     Models = {}
     kernel = "NN"
     MaxNumHiddenNeurons = train_data.shape[1]+4 # int(1.5*train_data.shape[1])+1
-    MaxNumEpochs = 1050
+    MaxNumEpochs = 2050
     LearningRates = [0.005,0.0005] #0.05,0.005]
 
     for hd in range(train_data.shape[1]+1,MaxNumHiddenNeurons,1):
-        for numEpochs in range(500,MaxNumEpochs,100):
+        for numEpochs in range(1000,MaxNumEpochs,500):
             for lr in LearningRates:
                 for linNeuron in [True,False]:                   
                             

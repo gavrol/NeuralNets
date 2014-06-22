@@ -104,12 +104,13 @@ def simple_square():
     print "square and simple addition"
     size = 1000
     vec = np.random.uniform(-5,5,size)
+    vec2 = np.random.uniform(-0.5,0.5,size)
 
-    tr_data = np.c_[vec]#,vec3]
     tvec = np.array([x**2 for x in vec])
-    target = np.c_[tvec+vec].reshape(size,1) #+vec3
-    print tr_data,target
-    write2file(tr_data,target,fn="test07_SquarePlus.csv")
+    #target = np.c_[tvec+vec].reshape(size,1) 
+    target = np.c_[tvec+vec2].reshape(size,1) 
+
+    write2file(np.c_[vec,vec2],target,fn="test06_Square_plus_random.csv") #"test07_SquarePlus.csv")
     
     
 if __name__=="__main__":
@@ -117,5 +118,5 @@ if __name__=="__main__":
     #NN_log_ff()
     #NN_simple1()
     #test05_tanh()
-    #simple_square()
-    data_set3()
+    simple_square()
+    #data_set3()
