@@ -110,9 +110,9 @@ if __name__== "__main__":
     Validation_Stats = {}
     Models = {}
     kernel = "NN"
-    MaxNumHiddenNeurons = int(2*train_data.shape[1])+1
+    MaxNumHiddenNeurons = int(1.5*train_data.shape[1])+1
     MaxNumEpochs = 250
-    LearningRates = [0.1,0.05,0.005]
+    LearningRates = [0.1]#,0.05,0.005]
 
     for hd in range(train_data.shape[1]+1,MaxNumHiddenNeurons,1):
         for numEpochs in range(100,MaxNumEpochs,100):
@@ -122,7 +122,7 @@ if __name__== "__main__":
                     neural_net = neuralnet.SimpleNeuralNet(train_data.shape[1],num_hidden_neurons=hd, 
                                                            num_epochs=numEpochs,LearningRate=lr,include_LinearNeuron = linNeuron,
                                                            include_InputBias=True,include_OutputBias=True)
-                    net = neural_net.train(train_data,train_target,plot=False)
+                    net = neural_net.train(train_data,train_target,plot=True)
                     print "weights_HO:",net.weights_HO
                     print "weights_HI:",net.weights_IH
                     
@@ -130,6 +130,7 @@ if __name__== "__main__":
                     predicted_values_validation,RMSE_validation= neural_net.validate(validation_data,validation_target)
                     
                     kernel = "NN_"+"NumHiddenNeurons:"+str(hd)+"_NumEpochs:"+str(numEpochs)+"_LR:"+str(lr)+"_LinNeuron:"+str(linNeuron)
+                    print "\n exploring",kernel
                     if kernel not in Models.keys():
                         Train_Stats[kernel] = {}
                         Validation_Stats[kernel] = {}

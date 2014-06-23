@@ -10,14 +10,16 @@ import math
 import matplotlib.pyplot as plt
 import copy
 
-def plot_predicted_vs_true(predicted,true):
+def plot_predicted_vs_true(predicted,true,fig_fn= None):
     fig, ax = plt.subplots()
     ax.plot(predicted,true,'g.')
     #ax.set_title(stk+": Residuals vs True "+yName)
     ax.set_ylabel("True values")
     ax.set_xlabel("Predictions")
-    plt.show()
-    #plt.savefig(out_dir+"Resid_vs_True_"+stk+".jpg")
+    if fig_fn == None:    
+        plt.show()
+    else:
+        plt.savefig(fig_fn +".jpg")
 
 
     
@@ -110,94 +112,6 @@ class SimpleNeuralNet:
         print "learning rates are:",self.LR_IH,self.LR_HO
         return self.save_net(net_fn)
 
-    def validate(self,observations,target):
-        print "\n...validating..."
-        errors = []
-        predictions = []
-        targets = []
-        for i in range(observations.shape[0]):
-            row_num = i
-            #calculate the current network output and error for this pattern
-            error,prediction = self.calc_net(observations[row_num],target[row_num])
-            errors.append(error)
-            predictions.append(prediction)
-            targets.append(target[row_num])
-
-            #change network weights
-        RMSerror = self.calc_overall_error(errors)
-        #self.display_results(targets,predictions,errors)
-        try:
-            plot_predicted_vs_true(predictions,targets)
-        except:
-            print "plotting aborted due to invalid values"
-        print "validation RMS Error = %f"%RMSerror
-        return predictions,RMSerror
-        
-    def test(self,observations):
-        predictions = []
-        for i in range(observations.shape[0]):
-            row_num = i
-            #calculate the current network output and error for this pattern
-            prediction = self.calc_net(observations[row_num],[],training=False)
-
-            predictions.append(prediction)
-
-            #change network weights
-        for i in range(len(predictions)):
-            print "obs =",i+1,"predicted value is",predictions[i]
-        return predictions
-        
-    def display_results(self,targs,predictions,errors):
-        for i in range(len(predictions)):
-            print "actual = %.4f predicted = %.4f error = %.4f" %(targs[i],predictions[i],errors[i])
-        
-                    
-    def calc_net(self,observations_row,target_row,training = True):
-        """calculate network output: calculate the outputs of the hidden neurons; the hidden neurons are tanh """
-        for i in range(self.num_hidden):
-            self.hidden_values[i] = 0.0
-            for j in range(self.num_features):
-                self.hidden_values[i] += observations_row[j] * self.weights_IH[j][i]
-            if i == 0 and self.HasLinearNeuron==True:
-                self.hidden_values[i] = self.hidden_values[i] #identity
-            else:
-                self.hidden_values[i] = math.tanh(self.hidden_values[i])
-    
-       #calculate the output of the network; the output neuron is linear
-        outPred = 0.0;
-        for i in range(self.num_hidden):
-            outPred += self.hidden_values[i]*self.weights_HO[i]
-        #output bias
-        outPred += self.weights_HO[self.num_hidden]
-            
-            
-        #calculate the error
-        if training:
-            errThisPat = outPred - target_row
-            return errThisPat,outPred
-        else:
-            return outPred
-
-    def save_net(self,fn=None):
-        if fn == None:
-            fn = "net.net"
-        fn = open(fn,'w')
-        fn.write("num_hiden:"+str(self.num_hidden)+"\n")
-        fn.write("num_features:"+str(self.num_features)+"\n")
-        fn.write("weights_IH:\n")
-        for j in range(self.num_features):
-            for i in range(self.num_hidden):
-                fn.write(str(self.weights_IH[j][i])+",")
-            fn.write("\n")
-        fn.write("\n")
-        fn.write("weights_HO:\n")
-        for i in range(self.num_hidden):
-            fn.write(str(self.weights_HO[i])+",")
-        
-        return self
-        
-        
-            
         
     def weight_changes_HO(self,error):
         """adjust the weights hidden-output"""
@@ -252,6 +166,98 @@ class SimpleNeuralNet:
         self.weights_IH_best = copy.deepcopy(self.weights_IH)
         self.weights_HO_best = copy.deepcopy(self.weights_HO)
 
+
+                    
+    def calc_net(self,observations_row,target_row,training = True):
+        """calculate network output: calculate the outputs of the hidden neurons; the hidden neurons are tanh """
+        for i in range(self.num_hidden):
+            self.hidden_values[i] = 0.0
+            for j in range(self.num_features):
+                self.hidden_values[i] += observations_row[j] * self.weights_IH[j][i]
+            if i == 0 and self.HasLinearNeuron==True:
+                self.hidden_values[i] = self.hidden_values[i] #identity
+            else:
+                self.hidden_values[i] = math.tanh(self.hidden_values[i])
+    
+       #calculate the output of the network; the output neuron is linear
+        outPred = 0.0;
+        for i in range(self.num_hidden):
+            outPred += self.hidden_values[i]*self.weights_HO[i]
+        #output bias
+        outPred += self.weights_HO[self.num_hidden]
+            
+            
+        #calculate the error
+        if training:
+            errThisPat = outPred - target_row
+            return errThisPat,outPred
+        else:
+            return outPred
+
+    def validate(self,observations,target,plot=True):
+        print "\n...validating..."
+        errors = []
+        predictions = []
+        targets = []
+        for i in range(observations.shape[0]):
+            row_num = i
+            #calculate the current network output and error for this pattern
+            error,prediction = self.calc_net(observations[row_num],target[row_num])
+            errors.append(error)
+            predictions.append(prediction)
+            targets.append(target[row_num])
+
+            #change network weights
+        RMSerror = self.calc_overall_error(errors)
+        #self.display_results(targets,predictions,errors)
+        if plot:
+            try:
+                plot_predicted_vs_true(predictions,targets)
+            except:
+                print "plotting aborted due to invalid values"
+        print "validation RMS Error = %f"%RMSerror
+        return predictions,RMSerror
+        
+    def test(self,observations):
+        predictions = []
+        for i in range(observations.shape[0]):
+            row_num = i
+            #calculate the current network output and error for this pattern
+            prediction = self.calc_net(observations[row_num],[],training=False)
+
+            predictions.append(prediction)
+
+            #change network weights
+        for i in range(len(predictions)):
+            print "obs =",i+1,"predicted value is",predictions[i]
+        return predictions
+        
+    def display_results(self,targs,predictions,errors):
+        for i in range(len(predictions)):
+            print "actual = %.4f predicted = %.4f error = %.4f" %(targs[i],predictions[i],errors[i])
+        
+
+
+    def save_net(self,fn=None):
+        if fn == None:
+            fn = "net.net"
+        fn = open(fn,'w')
+        fn.write("num_hiden:"+str(self.num_hidden)+"\n")
+        fn.write("num_features:"+str(self.num_features)+"\n")
+        fn.write("weights_IH:\n")
+        for j in range(self.num_features):
+            for i in range(self.num_hidden):
+                fn.write(str(self.weights_IH[j][i])+",")
+            fn.write("\n")
+        fn.write("\n")
+        fn.write("weights_HO:\n")
+        for i in range(self.num_hidden):
+            fn.write(str(self.weights_HO[i])+",")
+        
+        return self
+        
+        
+            
 
 
     def calc_overall_error(self,errors):

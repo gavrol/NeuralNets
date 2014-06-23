@@ -12,6 +12,7 @@ PURPOSE: this is my attempt to start using NN for data where there are categoric
 import os
 import numpy as np
 import pandas as pd
+import datetime
 import matplotlib.pyplot as plt
 import neuralnet
 import functions
@@ -21,11 +22,11 @@ def hist_plot(vec,title=None,figname=None):
     ax.hist(vec,bins=50)
     if title != None:
         fig.suptitle(title)
-    plt.show()
-#    if figname == None:
-#        plt.savefig('hist.jpg')
-#    else:
-#        plt.savefig(figname+".jpg")
+
+    if figname == None:
+        plt.show()
+    else:
+        plt.savefig(figname+".jpg")
 
 def write_stats_2file(train_fn,Models,Train_Stats,Validation_Stats,train_data,validation_data,ofn=None):
     if ofn == None:
@@ -66,9 +67,15 @@ def calculate_confusion_matrix(predicted_values_train,train_target,predicted_val
     Train_Stats[kernel]["SSPA"] ={'sensitivity':tr_sensitivity,"specificity":tr_specificity,'precision':tr_precision,'accuracy': tr_accuracy}  
     ts_sensitivity,ts_specificity,ts_precision,ts_accuracy = functions.calculate_SensSpecifPrecAccurNN(transformed_predicted_values_validation,validation_target)                
     Validation_Stats[kernel]["SSPA"] ={'sensitivity':ts_sensitivity,"specificity":ts_specificity,'precision':ts_precision,'accuracy': ts_accuracy}  
+    tr_numTP,tr_numFP,tr_numFN,tr_numTN = functions.cal_TP_FP_FN_TN_NN(transformed_predicted_values_train,train_target)
+    val_numTP,val_numFP,val_numFN,val_numTN = functions.cal_TP_FP_FN_TN_NN(transformed_predicted_values_validation,validation_target)
+
     s =  kernel+"\n"
     s += "For the train set of observations \n sensitivity %f\n specificity %f\n precision %f\n accuracy %f\n" %(tr_sensitivity,tr_specificity,tr_precision,tr_accuracy)
     s += "For the validation set "+str(validation_set)+" of observations \n sensitivity %f\n specificity %f\n precision %f\n accuracy %f\n" %(ts_sensitivity,ts_specificity,ts_precision,ts_accuracy)
+    s += "Train data: \n TP = "+str(tr_numTP) +" FP = "+str(tr_numFP) +"\n FN = "+str(tr_numFN) + " TN = "+str(tr_numTN)+"\n"
+    s += "Validation data: \n TP = "+str(val_numTP) +" FP = "+str(val_numFP) +"\n FN = "+str(val_numFN) + " TN = "+str(val_numTN)+"\n"
+    
     logf.write(s+"\n\n")
     
     
@@ -101,10 +108,11 @@ def valid_nonCategorical_variables(df,valid_columns):
     
 
 if __name__== "__main__":
-    logf = open("log_voteNN.log",'w')
+
     #load in the data
     DATA_DIR = ".."+os.sep+"data"+os.sep
     train_fn = "test08_BinaryResponse.csv"
+    logf = open("log_"+train_fn.split(".")[0]+"_"+datetime.datetime.now().strftime("%Y%m%d_%H%M")+".log","w")
 
     train_df = initialize_train_data(DATA_DIR,train_fn)
     test_fn = None #"test01b.csv" #None
@@ -160,10 +168,10 @@ if __name__== "__main__":
     kernel = "NN"
     MaxNumHiddenNeurons = train_data.shape[1]+4 # int(1.5*train_data.shape[1])+1
     MaxNumEpochs = 2050
-    LearningRates = [0.005,0.0005] #0.05,0.005]
+    LearningRates = [0.005]#,0.0005] #0.05,0.005]
 
-    for hd in range(train_data.shape[1]+1,MaxNumHiddenNeurons,1):
-        for numEpochs in range(1000,MaxNumEpochs,500):
+    for hd in range(train_data.shape[1]+2,MaxNumHiddenNeurons,2):
+        for numEpochs in range(1500,MaxNumEpochs,1000):
             for lr in LearningRates:
                 for linNeuron in [True,False]:                   
                             
@@ -174,10 +182,11 @@ if __name__== "__main__":
                     #print "weights_HO:",net.weights_HO
                     #print "weights_HI:",net.weights_IH
                     
-                    predicted_values_train,RMSE_train = neural_net.validate(train_data,train_target) 
-                    predicted_values_validation,RMSE_validation= neural_net.validate(validation_data,validation_target)
+                    predicted_values_train,RMSE_train = neural_net.validate(train_data,train_target,plot=False) 
+                    predicted_values_validation,RMSE_validation= neural_net.validate(validation_data,validation_target,plot=False)
                     
                     kernel = "NN_"+"NumHiddenNeurons:"+str(hd)+"_NumEpochs:"+str(numEpochs)+"_LR:"+str(lr)+"_LinNeuron:"+str(linNeuron)
+                    print "\n exploring",kernel                    
                     if kernel not in Models.keys():
                         Train_Stats[kernel] = {}
                         Validation_Stats[kernel] = {}
@@ -191,12 +200,12 @@ if __name__== "__main__":
                     Models[kernel]["NumFeatures"] = train_data.shape[1]
                     Train_Stats[kernel]['RMSE'] = RMSE_train
                     Validation_Stats[kernel]["RMSE"] = RMSE_validation 
-                    hist_plot(predicted_values_train,title="TrainSet Prediction")
-                    hist_plot(predicted_values_validation,title="ValidationSet Prediction")
+                    hist_plot(predicted_values_train,title="TrainSet Prediction",figname="Distrib_TrainSet_predictions")
+                    hist_plot(predicted_values_validation,title="ValidationSet Prediction",figname="Distrib_ValidationSet_predictions")
                     calculate_confusion_matrix(predicted_values_train,train_target,predicted_values_validation,validation_target,logf)
 
 
 
-    write_stats_2file(train_fn,Models,Train_Stats,Validation_Stats,train_data,validation_data)  
+    write_stats_2file(train_fn,Models,Train_Stats,Validation_Stats,train_data,validation_data,ofn="new_vote.csv")  
     logf.close()
    

@@ -36,7 +36,7 @@ if __name__== "__main__":
 
     #load in the data
     DATA_DIR = ".."+os.sep+"data"+os.sep
-    train_fn = "test07_SquarePlusItself.csv"# "test02_logNexp.csv"#"test01.csv"#"test06_Square_plus_random.csv"#"test03.csv"#"test04.csv"##"test03_random.csv"#"test05.csv"#""test07_Square.csv"# 
+    train_fn = "test02_logNexp.csv"#""test01.csv"#"test07_SquarePlusItself.csv"# test06_Square_plus_random.csv"#"test03.csv"#"test04.csv"##"test03_random.csv"#"test05.csv"#""test07_Square.csv"# 
     
     #observations,target,df = initialize_data(DATA_DIR,train_fn)
     train_df = initialize_train_data(DATA_DIR,train_fn)
@@ -82,8 +82,8 @@ if __name__== "__main__":
     
 
     hdn = train_data.shape[1]+2
-    numEpochs = 200
-    lr = 0.05
+    numEpochs = 100
+    lr = 0.5
     linNeuron = True
                             
     neural_net = neuralnet.SimpleNeuralNet(train_data.shape[1],num_hidden_neurons=hdn, 

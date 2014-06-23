@@ -124,7 +124,7 @@ def calculate_SensSpecifPrecAccurNN(target_predicted,target):
         numTP = len(target_predicted[(target_predicted==1) & (target==1)])
         numFP = len(target_predicted[(target_predicted==1) & (target==-1)])
         numTN = len(target_predicted[(target_predicted==-1) & (target==-1)])
-        numFN = len(target_predicted[(target_predicted==1) & (target==1)])
+        numFN = len(target_predicted[(target_predicted==-1) & (target==1)])
         sensitivity = float(numTP)/float(max(numTP+numFN,1))
         specificity = float(numTN)/float(max(numTN+numFP,1))
         precision = float(numTP)/float(max(numTP+numFP,1))
@@ -139,5 +139,5 @@ def cal_TP_FP_FN_TN_NN(target_predicted,target):
         numFP = len(target_predicted[(target_predicted==1) & (target==-1)])
         numTN = len(target_predicted[(target_predicted==-1) & (target==-1)])
         numFN = len(target_predicted[(target_predicted==-1) & (target==1)])
-    return numTP,numFP,numFN,numTN,
+    return numTP,numFP,numFN,numTN
 
