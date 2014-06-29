@@ -166,14 +166,14 @@ if __name__== "__main__":
     Validation_Stats = {}
     Models = {}
     kernel = "NN"
-    MaxNumHiddenNeurons = train_data.shape[1]+4 # int(1.5*train_data.shape[1])+1
+    MaxNumHiddenNeurons = train_data.shape[1]+7 # int(1.5*train_data.shape[1])+1
     MaxNumEpochs = 2050
     LearningRates = [0.005]#,0.0005] #0.05,0.005]
 
-    for hd in range(train_data.shape[1]+2,MaxNumHiddenNeurons,2):
+    for hd in range(train_data.shape[1]+3,MaxNumHiddenNeurons,2):
         for numEpochs in range(1500,MaxNumEpochs,1000):
             for lr in LearningRates:
-                for linNeuron in [True,False]:                   
+                for linNeuron in [True]:#,False]:                   
                             
                     neural_net = neuralnet.SimpleNeuralNet(train_data.shape[1],num_hidden_neurons=hd, 
                                                            num_epochs=numEpochs,LearningRate=lr,include_LinearNeuron = linNeuron,

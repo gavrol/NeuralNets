@@ -103,10 +103,11 @@ class SimpleNeuralNet:
         
         #training has finished display the results
         #self.display_results(targets,predictions,errors)
-        try:
-            plot_predicted_vs_true(predictions,targets)
-        except:
-            print "plotting aborted due to invalid values"
+        if plot:
+            try:
+                plot_predicted_vs_true(predictions,targets)
+            except:
+                print "plotting aborted due to invalid values"
         print "last RMS Error =",RMSerror
         print "number hidden neurons:",self.num_hidden
         print "learning rates are:",self.LR_IH,self.LR_HO
